@@ -1,7 +1,7 @@
 {
   "name": "yayes2core",
-  "version": "0.0.3-dev",
-  "description": "",
+  "version": "0.0.4-dev",
+  "description": "MVC framework. WIP.",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

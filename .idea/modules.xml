@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/.idea/yayes2-core.iml" filepath="$PROJECT_DIR$/.idea/yayes2-core.iml" />
-=======
-      <module fileurl="file://$PROJECT_DIR$/.idea/Yayes2Core.iml" filepath="$PROJECT_DIR$/.idea/Yayes2Core.iml" />
->>>>>>> origin/master
     </modules>
   </component>
 </project>
