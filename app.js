@@ -44,14 +44,14 @@ function registerControllers() {
   var controllerFiles = {};
   var routesFile = {};
 
-  fs.readdirSync(path.join(process.cwd(), "../../", "controllers"), {}, function (err, files) {
+  fs.readdirSync(path.join(process.cwd(), "controllers"), {}, function (err, files) {
     if (err) {
       console.error("Error loading controllers: " + err);
       throw err;
     }
     controllerFiles = files;
   });
-  fs.readFileSync(path.join(process.cwd(), "../../,", "routes.json"), {}, function (err, data) {
+  fs.readFileSync(path.join(process.cwd(), "routes.json"), {}, function (err, data) {
     if (err) {
       console.error("Error loading routes.json: %s", err);
       throw err;
@@ -59,12 +59,12 @@ function registerControllers() {
     routesFile = data;
   });
 
-  routes = JSON.parse(routesFile.toString());
+  routes = routesFile.toString();
   for (var controllerFile in controllerFiles) {
     var controllerName = controllerFiles[controllerFile].split(".")[0];
     console.info("Loading controller: " + controllerName);
-    var controllerPath = path.join(process.cwd(), "../../,", "controllers/") + controllerName + ".js";
-    var modelPath = path.join(process.cwd(), "../../,", "models/") + controllerName + ".json";
+    var controllerPath = path.join(process.cwd(), "controllers/", controllerName + ".js");
+    var modelPath = path.join(process.cwd(), "models/", controllerName + ".json");
     var controllerCollection = db.collection(controllerName);
     var controller = require(controllerPath)(app, controllerCollection);
     for (var route in routes[controllerName]) {

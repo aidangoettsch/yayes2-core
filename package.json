@@ -1,6 +1,6 @@
 {
   "name": "yayes2core",
-  "version": "0.0.5-dev",
+  "version": "0.0.7-dev",
   "description": "MVC framework. WIP.",
   "main": "app.js",
   "scripts": {
