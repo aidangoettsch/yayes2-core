@@ -29,35 +29,43 @@ app.routerUtills.getRoute = function(path, verb) {
 };
 
 function registerControllers() {
-  async.series([
-    function(){
-      MongoClient.connect("mongodb://localhost:27017/yayes2", function(err, db) {
-        if (err) {
-          console.info("Error connecting to database: " + err)
-        }
-        console.info("Connected to database");
-        app.db = db;
-      });
-    }
-  ]);
+  console.info("Starting controller registration");
 
   var controllerFiles = {};
   var routesFile = {};
 
-  fs.readdirSync(path.join(process.cwd(), "controllers"), {}, function (err, files) {
-    if (err) {
-      console.error("Error loading controllers: " + err);
-      throw err;
+  console.info(path.join(process.cwd(), "controllers"));
+
+  async.series([
+    function () {
+      MongoClient.connect("mongodb://localhost:27017/yayes2", function(err, db) {
+        if (err) console.info("Error connecting to database: " + err);
+        else console.info("Connected to database");
+        app.db = db;
+      });
+    },
+    function () {
+      fs.readdir(path.join(process.cwd(), "controllers"), function (err, files) {
+        if (err) {
+          console.error("Error loading controllers: " + err);
+          throw err;
+        }
+        console.info(files);
+        controllerFiles = files;
+      });
+    },
+    function () {
+      fs.readFile(path.join(process.cwd(), "routes.json"), function (err, data) {
+        if (err) {
+          console.error("Error loading routes.json: %s", err);
+          throw err;
+        }
+        routesFile = data;
+      });
     }
-    controllerFiles = files;
-  });
-  fs.readFileSync(path.join(process.cwd(), "routes.json"), {}, function (err, data) {
-    if (err) {
-      console.error("Error loading routes.json: %s", err);
-      throw err;
-    }
-    routesFile = data;
-  });
+  ]);
+
+  console.info(controllerFiles);
 
   routes = routesFile.toString();
   for (var controllerFile in controllerFiles) {
@@ -71,7 +79,7 @@ function registerControllers() {
       route = routes[controllerName][route];
       app[route.verb](route.path, function (req, res) {
         route = app.routerUtills.getRoute(req.path, req.method.toLowerCase());
-        console.info(route.verb.toUpperCase() + " " + route.path)
+        console.info(route.verb.toUpperCase() + " " + route.path);
         route.controller.router[route.function](req, res)
       });
       console.info("Registered " + route.verb.toUpperCase() + " " + route.path);
@@ -94,6 +102,7 @@ function registerControllers() {
 }
 
 module.exports = function () {
+  console.info("Loading MVC framework");
   app.set('views', path.join(process.cwd(), "../../,", 'views'));
   app.set('view engine', 'jade');
   app.use(express.static(path.join(process.cwd(), "../../,", 'public')));
@@ -106,6 +115,7 @@ module.exports = function () {
     if (req.accepts('html')) res.render('error/404');
     else if (req.accepts('json')) res.end({error: 'Not found'});
     else res.type('txt').end('Not found');
+    console.info("404 page registered");
   });
 
   app.server = app.listen(3000, function () {
