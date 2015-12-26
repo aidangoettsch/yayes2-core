@@ -6,6 +6,8 @@ var MongoClient = require('mongodb').MongoClient;
 var app = express();
 var controllers = [{}];
 var routes;
+var controllerFiles = {};
+var routesFile = {};
 app.db = {};
 app.routerUtills = {};
 
@@ -28,52 +30,54 @@ app.routerUtills.getRoute = function(path, verb) {
   }
 };
 
-function registerControllers() {
+function loadFiles() {
   console.info("Starting controller registration");
 
-  var controllerFiles = {};
-  var routesFile = {};
-
-  console.info(path.join(process.cwd(), "controllers"));
-
   async.series([
-    function () {
-      MongoClient.connect("mongodb://localhost:27017/yayes2", function(err, db) {
-        if (err) console.info("Error connecting to database: " + err);
-        else console.info("Connected to database");
-        app.db = db;
-      });
-    },
-    function () {
-      fs.readdir(path.join(process.cwd(), "controllers"), function (err, files) {
-        if (err) {
-          console.error("Error loading controllers: " + err);
-          throw err;
-        }
-        console.info(files);
-        controllerFiles = files;
-      });
-    },
-    function () {
-      fs.readFile(path.join(process.cwd(), "routes.json"), function (err, data) {
-        if (err) {
-          console.error("Error loading routes.json: %s", err);
-          throw err;
-        }
-        routesFile = data;
-      });
-    }
-  ]);
+      function (cb) {
+        MongoClient.connect("mongodb://localhost:27017/yayes2", function (err, db) {
+          if (err) console.info("Error connecting to database: " + err);
+          else console.info("Connected to database");
+          app.db = db;
+          cb(null, "db");
+        });
+      },
+      function (cb) {
+        fs.readdir(path.join(process.cwd(), "controllers"), function (err, files) {
+          if (err) {
+            console.error("Error loading controllers: " + err);
+            throw err;
+          }
+          controllerFiles = files;
+          cb(null, files);
+        });
+      },
+      function (cb) {
+        fs.readFile(path.join(process.cwd(), "routes.json"), function (err, data) {
+          if (err) {
+            console.error("Error loading routes.json: %s", err);
+            throw err;
+          }
+          routesFile = data;
+          cb(null, data);
+        });
+      }
+    ],
+    function (err, results) {
+      registerControllers()
+    });
+}
 
-  console.info(controllerFiles);
-
-  routes = routesFile.toString();
+function registerControllers() {
+  routes = JSON.parse(routesFile.toString());
+  console.info(routes);
   for (var controllerFile in controllerFiles) {
     var controllerName = controllerFiles[controllerFile].split(".")[0];
     console.info("Loading controller: " + controllerName);
     var controllerPath = path.join(process.cwd(), "controllers/", controllerName + ".js");
     var modelPath = path.join(process.cwd(), "models/", controllerName + ".json");
-    var controllerCollection = db.collection(controllerName);
+    //var controllerCollection = db.collection(controllerName);
+    var controllerCollection = {};
     var controller = require(controllerPath)(app, controllerCollection);
     for (var route in routes[controllerName]) {
       route = routes[controllerName][route];
@@ -99,24 +103,26 @@ function registerControllers() {
       dbCollection: controllerCollection
     };
   }
+  load404();
 }
 
-module.exports = function () {
-  console.info("Loading MVC framework");
-  app.set('views', path.join(process.cwd(), "../../,", 'views'));
-  app.set('view engine', 'jade');
-  app.use(express.static(path.join(process.cwd(), "../../,", 'public')));
-  registerControllers();
-
-  app.use(function(req, res, next){
+function load404() {
+  app.use(function(req, res){
     console.info("404 " + req.path);
     res.status(404);
 
     if (req.accepts('html')) res.render('error/404');
     else if (req.accepts('json')) res.end({error: 'Not found'});
     else res.type('txt').end('Not found');
-    console.info("404 page registered");
   });
+}
+
+module.exports = function () {
+  console.info("Loading MVC framework");
+  app.set('views', path.join(process.cwd(), 'views'));
+  app.set('view engine', 'jade');
+  app.use(express.static(path.join(process.cwd(), 'public')));
+  loadFiles();
 
   app.server = app.listen(3000, function () {
     var host = app.server.address().address;

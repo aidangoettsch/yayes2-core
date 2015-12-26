@@ -1,6 +1,6 @@
 {
   "name": "yayes2core",
-  "version": "0.0.14-dev",
+  "version": "0.1.1",
   "description": "MVC framework. WIP.",
   "main": "app.js",
   "scripts": {
@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "async": "^1.4.2",
-    "express": "^4.13.3"
+    "express": "^4.13.3",
+    "jade": "^1.11.0",
+    "mongodb": "^2.1.0"
   }
 }
